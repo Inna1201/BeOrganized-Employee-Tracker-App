@@ -1,6 +1,7 @@
 const inquirer = require('inquirer');
 const mysql = require("mysql2");
-const db = require('./db/connections.js')
+const db = require('./db/connections.js');
+require('console.table');
 
 
 function mainMenu() {
@@ -103,9 +104,8 @@ async function addEmployee() {
     const managerChoices = managers.map(({ first_name, last_name, manager_id }) => (
         { name: first_name + " " + last_name, value: manager_id }
     ));
-    console.log(roleChoices);
-    console.log(managerChoices);
-
+    managerChoices.push({name: 'None', value: null });
+   
 
     inquirer.prompt(
         [
@@ -131,8 +131,7 @@ async function addEmployee() {
                 type: 'list',
                 message: 'Please use arrow keys to choose the manager.',
                 name: 'manager',
-                choices:  managerChoices,  /// how to add none option
-                    // ['none',],
+                choices:  managerChoices, 
                 default: '(Move up and down to reveal more choices.)'
             }
 
@@ -157,9 +156,10 @@ async function updateRole() {
     ));
 
     const [roles] = await db.promise().query("SELECT * FROM role")
-    const roleChoices = roles.map(({ title, department_id }) => (
-        { name: title, value: department_id }
+    const roleChoices = roles.map(({ title, id }) => (
+        { name: title, value: id }
     ));
+
 
     inquirer.prompt(
         [
@@ -180,11 +180,8 @@ async function updateRole() {
             }
 
         ]).then(async answers => {
-            const updatedRole = { id: answers.selectEmployee, role_id: answers.selectRole } // how to update????
-            console.log(updatedRole)
-            const response = await db.promise().query("UPDATE employee SET id =? WHERE id = ?", [selectEmployee, selectRole])
-            console.log(response)
-            viewRoles()
+            const response = await db.promise().query("UPDATE employee SET role_id =? WHERE id = ?", [answers.selectRole, answers.selectEmployee])
+            viewEmployees()
 
         })
 };
