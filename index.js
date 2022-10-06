@@ -51,7 +51,7 @@ function mainMenu() {
         }
 
         if (answers.main === "Quit") {
-            // exit app???
+            process.exit();
         }
 
     })
@@ -91,18 +91,17 @@ const viewRoles = () => {
 
 };
 
-
 async function addEmployee() {
 
 
     const [roles] = await db.promise().query("SELECT * FROM role")
-    const roleChoices = roles.map(({ title, department_id }) => (
-        { name: title, value: department_id }
+    const roleChoices = roles.map(({ title, id }) => (
+        { name: title, value: id }
     ));
 
-    const [managers] = await db.promise().query("SELECT * FROM employee WHERE manager_id IS NOT NULL")
-    const managerChoices = managers.map(({ first_name, last_name, manager_id }) => (
-        { name: first_name + " " + last_name, value: manager_id }
+    const [managers] = await db.promise().query("SELECT * FROM employee WHERE manager_id IS NULL")
+    const managerChoices = managers.map(({ first_name, last_name, id }) => (
+        { name: first_name + " " + last_name, value: id }
     ));
     managerChoices.push({name: 'None', value: null });
    
@@ -139,14 +138,12 @@ async function addEmployee() {
 
         ]).then(async (answers) => {
             const employee = { first_name: answers.firstName, last_name: answers.lastName, role_id: answers.role, manager_id: answers.manager }
-            console.log(employee)
             const response = await db.promise().query("INSERT INTO employee SET ?", employee)
             console.log(response)
             viewEmployees()
 
         })
 };
-
 
 async function updateRole() {
 
@@ -186,14 +183,13 @@ async function updateRole() {
         })
 };
 
-
 async function addRole() {
 
     const [departments] = await db.promise().query("SELECT * FROM department")
     const departmentChoices = departments.map(({ department_name, id }) => (
         { name: department_name, value: id }
     ));
-    console.log(departmentChoices);
+    
     inquirer.prompt(
         [
             {
@@ -216,14 +212,12 @@ async function addRole() {
         ]).then(async (answers) => {
             console.log(answers);
             const newRole = { title: answers.roleName, salary: answers.roleSalary, department_id: answers.roleDepartment }
-            console.log(newRole)
             const response = await db.promise().query("INSERT INTO role SET ?", newRole)
             console.log(response)
             viewRoles()
 
         })
 };
-
 
 function addDepartment() {
     inquirer.prompt({
@@ -233,7 +227,6 @@ function addDepartment() {
 
     }).then(async (answers) => {
         const department = { department_name: answers.departmentName }
-        console.log(department)
         const response = await db.promise().query("INSERT INTO department SET ?", department)
         console.log(response)
         viewDepartments()
